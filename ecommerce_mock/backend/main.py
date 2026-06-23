@@ -117,8 +117,6 @@ def is_enabled_for_user(flag_key: str, user_id: str) -> bool:
 
 from fastapi.staticfiles import StaticFiles
 
-APP.mount("/", StaticFiles(directory="static", html=True), name="static")
-
 
 @APP.get("/checkout")
 async def checkout(
@@ -134,6 +132,5 @@ async def checkout(
 @APP.get("/__flags")
 async def read_flags():
     return FLAGS
-
 
 APP.mount("/", StaticFiles(directory="static", html=True), name="static")

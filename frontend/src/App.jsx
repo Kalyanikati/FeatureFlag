@@ -11,22 +11,26 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState(null)
 
-  const loadFlags = async () => {
+  const loadFlags = async (showSpinner = true) => {
     try {
-      setLoading(true)
+      if (showSpinner) {
+        setLoading(true)
+      }
       const response = await flagAPI.getAll()
       setFlags(response.data)
     } catch (error) {
       showMessage('Error loading flags: ' + error.message, 'error')
     } finally {
-      setLoading(false)
+      if (showSpinner) {
+        setLoading(false)
+      }
     }
   }
 
   useEffect(() => {
     loadFlags()
-    // Refresh flags every 5 seconds
-    const interval = setInterval(loadFlags, 5000)
+    // Refresh flags every 5 seconds without interrupting the form state
+    const interval = setInterval(() => loadFlags(false), 5000)
     return () => clearInterval(interval)
   }, [])
 
