@@ -1,0 +1,84 @@
+version: '3.8'
+services:
+  postgres_db:
+    image: postgres:15-alpine
+    container_name: ff_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ff_admin
+      POSTGRES_PASSWORD: ff_secure_pass123
+      POSTGRES_DB: feature_flags_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ff_network
+
+  redis_cache:
+    image: redis:7-alpine
+    container_name: ff_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - ff_network
+
+  flag_platform_api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: ff_api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://ff_admin:ff_secure_pass123@postgres_db:5432/feature_flags_db
+      - REDIS_URL=redis://redis_cache:6379/0
+    depends_on:
+      - postgres_db
+      - redis_cache
+    networks:
+      - ff_network
+
+  ecommerce_service:
+    build:
+      context: ../ecommerce_mock/backend
+      dockerfile: Dockerfile
+    container_name: ff_ecommerce_client
+    restart: always
+    ports:
+      - "8001:8001"
+    environment:
+      - REDIS_URL=redis://redis_cache:6379/0
+      - FF_PUBSUB_CHANNEL=flag_updates
+    depends_on:
+      - flag_platform_api
+      - redis_cache
+    networks:
+      - ff_network
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: ff_dashboard
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - flag_platform_api
+      - ecommerce_service
+    networks:
+      - ff_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  ff_network:
+    driver: bridge

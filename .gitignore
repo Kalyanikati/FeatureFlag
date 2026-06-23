@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.python-version
+.pytest_cache/
+
+# Environment variables
+.env
+backend/.env
+
+# Node
+node_modules/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+frontend/dist/
+
+# Docker
+*.log
+docker-compose.override.yml
+.env.*
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Misc
+*.sqlite3
